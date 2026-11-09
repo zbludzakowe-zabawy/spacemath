@@ -349,16 +349,31 @@ function drawUfo(ctx, x, y, scale, color, t, tilt = 0) {
 
 const SHIP_H = 56;
 const SHIP_COLORS = ['#6d5dfc', '#e2557b', '#f08a24', '#1fb6a6', '#3f8efc', '#b04ce0', '#d9a514', '#4caf50'];
-const SHIP_FONT = `700 28px ${FONT}`;
+/* Wygląd statku: zwykły (komputer) i powiększony (telefon/tablet) –
+ * k to skala całego statku, fs to rozmiar liczb w panelu (przed skalowaniem). */
+const SHIP_STYLE_NORMAL = { k: 1, fs: 28, panel: 38 };
+const SHIP_STYLE_BIG = { k: 1.3, fs: 38, panel: 48 };
+const shipFont = st => `700 ${st.fs}px ${FONT}`;
 
-function shipLength(ctx, text) {
-  ctx.font = SHIP_FONT;
+function shipLength(ctx, text, st = SHIP_STYLE_NORMAL) {
+  ctx.font = shipFont(st);
   const tw = ctx.measureText(text).width;
-  return Math.ceil(tw + 46 + SHIP_H * 0.8);
+  return Math.ceil((tw + 46 + SHIP_H * 0.8) * st.k);
 }
 
 function drawShip(ctx, s, t) {
-  const x = s.x, y = s.y, w = s.w, h = SHIP_H;
+  const st = s.style || SHIP_STYLE_NORMAL;
+  // ostrzeżenie – statek blisko prawej krawędzi (w prawdziwych współrzędnych)
+  const warn = s.x + s.w > W - 140;
+  ctx.save();
+  ctx.translate(s.x, s.y);
+  ctx.scale(st.k, st.k);
+  drawShipBody(ctx, s, t, st, warn);
+  ctx.restore();
+}
+
+function drawShipBody(ctx, s, t, st, warn) {
+  const x = 0, y = 0, w = s.w / st.k, h = SHIP_H;
   const top = y - h / 2, bot = y + h / 2;
   const noseStart = x + w - h * 0.6;
 
@@ -403,8 +418,6 @@ function drawShip(ctx, s, t) {
   ctx.fillStyle = bg;
   ctx.fill();
 
-  // ostrzeżenie – statek blisko prawej krawędzi
-  const warn = x + w > W - 140;
   if (warn) {
     ctx.save();
     ctx.shadowColor = '#ff2a2a';
@@ -427,10 +440,10 @@ function drawShip(ctx, s, t) {
 
   // panel z działaniem
   const px = x + 14, pw = w - h * 0.75 - 14;
-  roundRect(ctx, px, y - 19, pw, 38, 10);
+  roundRect(ctx, px, y - st.panel / 2, pw, st.panel, 10);
   ctx.fillStyle = 'rgba(5,10,30,0.55)';
   ctx.fill();
-  ctx.font = SHIP_FONT;
+  ctx.font = shipFont(st);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#ffffff';
