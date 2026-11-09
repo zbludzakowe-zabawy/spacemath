@@ -25,7 +25,7 @@ html, body {
 
 /* Scena 1280x720 skalowana do okna (transform ustawiany w JS) */
 #stage {
-  position: absolute;
+  position: fixed;
   left: 50%;
   top: 50%;
   width: 1280px;
@@ -193,3 +193,42 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 
 .summary-stats { display: grid; grid-template-columns: 1fr auto; gap: 6px 30px; font-size: 21px; text-align: left; margin: 10px 0; }
 .summary-stats b { color: var(--accent); text-align: right; }
+/* ---------- aplikacja: instalacja i aktualizacja ---------- */
+.app-banner {
+  position: fixed; left: 0; right: 0; margin: 0 auto;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 150000;
+  font-family: var(--font);
+  text-align: left;
+  display: flex; align-items: center; gap: 10px;
+  width: min(520px, calc(100vw - 24px));
+  padding: 10px 12px; border-radius: 16px;
+  background: var(--panel); border: 1px solid rgba(255, 255, 255, .16);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+  animation: rise .25s ease;
+}
+.app-banner[hidden] { display: none; }
+.app-banner img { border-radius: 10px; flex: none; }
+.app-banner-text { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: .85rem; color: var(--muted); min-width: 0; }
+.app-banner-text strong { color: var(--text); font-size: .95rem; }
+.app-banner .btn { padding: 8px 14px; flex: none; font-size: 17px; }
+.banner-close {
+  flex: none; width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .18); background: transparent; color: var(--muted);
+}
+.share-ico { width: 1.1em; height: 1.1em; vertical-align: -.2em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#install-banner .only-prompt, #install-banner .only-ios { display: none; }
+#install-banner[data-mode="prompt"] .only-prompt { display: inline; }
+#install-banner[data-mode="prompt"] button.only-prompt { display: inline-block; }
+#install-banner[data-mode="ios"] .only-ios { display: inline; }
+
+@keyframes rise { from { transform: translateY(20px); opacity: 0; } }
+/* Na wąskim ekranie: */
+@media (max-width: 720px) {
+  .app-banner { bottom: calc(16px + env(safe-area-inset-bottom)); gap: 8px; }
+  .app-banner .btn { padding: 8px 10px; }
+}
+
+/* W trakcie gry baner instalacji nie zasłania pola z wynikiem */
+body.in-game #install-banner { display: none; }
+body.in-game .app-banner { bottom: auto; top: calc(74px + env(safe-area-inset-top)); }

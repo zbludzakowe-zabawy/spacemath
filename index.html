@@ -2,8 +2,18 @@
 <html lang="pl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MathSpace – kosmiczne liczenie</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14104a">
+  <title>MathSpace</title>
+  <meta name="description" content="Kosmiczna gra do nauki dodawania, odejmowania, mnożenia i dzielenia.">
+  <meta name="application-name" content="MathSpace">
+  <meta name="apple-mobile-web-app-title" content="MathSpace">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
@@ -127,10 +137,30 @@
     </section>
   </div>
 
+  <div class="app-banner" id="install-banner" hidden>
+    <img src="icons/icon-192.png" alt="" width="40" height="40">
+    <div class="app-banner-text">
+      <strong>Zainstaluj MathSpace</strong>
+      <span class="only-prompt">Gra na ekranie głównym, działa też bez internetu.</span>
+      <span class="only-ios">Stuknij <b>Udostępnij</b> <svg class="share-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>, potem <b>Do ekranu początkowego</b>.</span>
+    </div>
+    <button class="btn primary only-prompt" id="btn-install">Zainstaluj</button>
+    <button class="banner-close" id="btn-install-close" aria-label="Nie pokazuj więcej">✕</button>
+  </div>
+  <div class="app-banner" id="update-banner" role="alert" hidden>
+    <div class="app-banner-text">
+      <strong>Dostępna nowa wersja</strong>
+      <span>Twoja gra zostanie zachowana.</span>
+    </div>
+    <button class="btn primary" id="btn-update">Odśwież</button>
+    <button class="btn secondary" id="btn-update-later">Później</button>
+  </div>
+
   <script src="js/storage.js"></script>
   <script src="js/problems.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/graphics.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/pwa.js"></script>
 </body>
 </html>

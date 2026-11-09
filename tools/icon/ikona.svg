@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="sky" cx="35%" cy="30%" r="85%">
+      <stop offset="0" stop-color="#3b1a7a"/>
+      <stop offset="0.55" stop-color="#14104a"/>
+      <stop offset="1" stop-color="#050820"/>
+    </radialGradient>
+    <linearGradient id="disc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f1f5fb"/>
+      <stop offset="0.55" stop-color="#9aa6bb"/>
+      <stop offset="1" stop-color="#46506a"/>
+    </linearGradient>
+    <radialGradient id="head" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#b8ffd0"/>
+      <stop offset="1" stop-color="#2fbf63"/>
+    </radialGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7cf3ff" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#7cf3ff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#sky)"/>
+  <g fill="#ffffff">
+    <circle cx="86" cy="96" r="5"/><circle cx="420" cy="78" r="6"/><circle cx="452" cy="196" r="4"/>
+    <circle cx="64" cy="250" r="4"/><circle cx="150" cy="60" r="3"/><circle cx="360" cy="140" r="3"/>
+    <circle cx="96" cy="420" r="4"/><circle cx="440" cy="430" r="5"/>
+  </g>
+  <path d="M206 330 L306 330 L372 470 L140 470 Z" fill="url(#beam)"/>
+  <!-- czułki -->
+  <g stroke="#2fbf63" stroke-width="9" stroke-linecap="round" fill="none">
+    <path d="M232 168 Q216 136 206 126"/><path d="M280 168 Q296 136 306 126"/>
+  </g>
+  <circle cx="204" cy="122" r="13" fill="#fff6a8"/><circle cx="308" cy="122" r="13" fill="#fff6a8"/>
+  <!-- kopuła -->
+  <path d="M164 262 A92 92 0 0 1 348 262 Z" fill="#8fd8ff" fill-opacity="0.28" stroke="#d6f1ff" stroke-width="6"/>
+  <!-- ufoludek -->
+  <ellipse cx="256" cy="214" rx="56" ry="50" fill="url(#head)"/>
+  <ellipse cx="234" cy="210" rx="16" ry="21" fill="#0b0b1a" transform="rotate(-18 234 210)"/>
+  <ellipse cx="278" cy="210" rx="16" ry="21" fill="#0b0b1a" transform="rotate(18 278 210)"/>
+  <circle cx="239" cy="201" r="5" fill="#fff"/><circle cx="283" cy="201" r="5" fill="#fff"/>
+  <!-- spodek -->
+  <ellipse cx="256" cy="276" rx="178" ry="52" fill="url(#disc)"/>
+  <path d="M90 288 A166 30 0 0 0 422 288 L422 290 A166 26 0 0 1 90 290 Z" fill="#4be37a"/>
+  <ellipse cx="256" cy="296" rx="166" ry="24" fill="#4be37a"/>
+  <ellipse cx="256" cy="320" rx="70" ry="18" fill="#1d7a40"/>
+  <g fill="#fffbd0">
+    <circle cx="136" cy="296" r="10"/><circle cx="196" cy="304" r="10"/><circle cx="256" cy="306" r="10"/>
+    <circle cx="316" cy="304" r="10"/><circle cx="376" cy="296" r="10"/>
+  </g>
+</svg>

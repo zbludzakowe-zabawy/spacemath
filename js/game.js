@@ -64,6 +64,7 @@ window.addEventListener('resize', resize);
 const SCREENS = ['screen-menu', 'screen-settings', 'screen-pause', 'screen-victory', 'screen-summary'];
 function showScreen(id) {
   for (const s of SCREENS) $(s).classList.toggle('hidden', s !== id);
+  document.body.classList.toggle('in-game', ['playing', 'levelup', 'paused', 'victory'].includes(game.state));
   $('ingame-buttons').classList.toggle('hidden', !['playing', 'levelup', 'paused'].includes(game.state));
 }
 
@@ -132,6 +133,7 @@ function drawMenuUfos(t) {
 }
 
 function goMenu() {
+  Store.clearSession();
   game.state = 'menu';
   fireworks.stop();
   game.ships = [];
@@ -265,6 +267,60 @@ function startGame() {
   game.state = 'playing';
   showScreen(null);
   showBanner(`Plansza 1`, themeFor(1).title, 2.2);
+  saveSession();
+}
+
+/* ------------------------------------------------------------------ */
+/* Zapis trwającej gry                                                  */
+/* ------------------------------------------------------------------ */
+
+const ACTIVE_STATES = ['playing', 'levelup', 'paused', 'victory'];
+
+function saveSession() {
+  if (!ACTIVE_STATES.includes(game.state) || !game.playerId) return;
+  const guest = playerDef(game.playerId).guest;
+  Store.saveSession({
+    playerId: game.playerId,
+    level: game.level,
+    score: game.score,
+    stats: game.stats,
+    victoryShown: game.victoryShown,
+    // gość nie ma zapisanego profilu – jego ustawienia trzymamy razem z grą
+    settings: guest ? game.settings : undefined,
+    weak: guest ? game.profile.weak : undefined,
+  });
+}
+
+/** Przywraca zapisaną grę (np. po przeładowaniu strony) – zaczyna od pauzy. */
+function restoreSession() {
+  const ses = Store.data.session;
+  if (!ses || !playerDef(ses.playerId) || !Number.isFinite(ses.level) || !Number.isFinite(ses.score)) {
+    Store.clearSession();
+    return false;
+  }
+  game.playerId = ses.playerId;
+  game.profile = Store.profile(ses.playerId);
+  if (playerDef(ses.playerId).guest) {
+    game.profile.settings = mergeSettings(ses.settings);
+    game.profile.weak = ses.weak || {};
+  }
+  game.settings = game.profile.settings;
+  game.level = Math.max(1, ses.level);
+  game.score = ses.score;
+  game.stats = Object.assign({ hits: 0, escaped: 0, wrong: 0, startedAt: Date.now() }, ses.stats);
+  game.victoryShown = !!ses.victoryShown || game.level > LEVELS_TO_WIN;
+  game.ships = [];
+  game.lasers = [];
+  game.texts = [];
+  game.input = '';
+  game.spawnTimer = 1;
+  game.ufo.x = game.ufo.targetX = W / 2;
+  setBackground(game.level);
+  game.prevState = 'playing';
+  game.restored = true;
+  game.state = 'paused';
+  showScreen('screen-pause');
+  return true;
 }
 
 function setBackground(level) {
@@ -360,6 +416,7 @@ function shoot(ship) {
   game.texts.push({ x: cx, y: cy - 30, text: '+1', color: '#7dffa5', life: 1.1 });
   addWeak(ship.problem, -1);
   checkLevel();
+  saveSession();
 }
 
 function shipEscaped(ship) {
@@ -369,6 +426,7 @@ function shipEscaped(ship) {
   game.texts.push({ x: W - 60, y: ship.y, text: '−1', color: '#ff6b7a', life: 1.3, sub: `${ship.problem.text} = ${ship.problem.answer}` });
   Sound.escape();
   addWeak(ship.problem, 1);
+  saveSession();
 }
 
 function checkLevel() {
@@ -407,6 +465,7 @@ function continueAfterVictory() {
   game.spawnTimer = 1;
   showScreen(null);
   showBanner(`Plansza ${game.level}`, themeFor(game.level).title, 2.2);
+  saveSession();
 }
 
 function saveBest() {
@@ -421,15 +480,22 @@ function pause() {
   game.prevState = game.state;
   game.state = 'paused';
   showScreen('screen-pause');
+  saveSession();
 }
 function resume() {
   if (game.state !== 'paused') return;
   game.state = game.prevState || 'playing';
   showScreen(null);
+  if (game.restored) {
+    game.restored = false;
+    Sound.init();
+    showBanner(`Plansza ${game.level}`, themeFor(game.level).title, 2.2);
+  }
 }
 
 function endGame() {
   saveBest();
+  Store.clearSession();
   fireworks.stop();
   game.state = 'summary';
   const st = game.stats;
@@ -779,5 +845,15 @@ $('btn-mute').textContent = Sound.muted ? '🔇' : '🔊';
 resize();
 buildMenu();
 showScreen('screen-menu');
+restoreSession();
 requestAnimationFrame(frame);
+
+// zapis przy chowaniu aplikacji; w trakcie gry – automatyczna pauza
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    pause();
+    saveSession();
+  }
+});
+window.addEventListener('pagehide', saveSession);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { game.menuBg = null; });

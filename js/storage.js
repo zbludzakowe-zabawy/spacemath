@@ -72,7 +72,11 @@ const Store = {
     if (!def.guest) this.save();
   },
 
-  setMuted(m) { this.data.muted = m; this.save(); }
+  setMuted(m) { this.data.muted = m; this.save(); },
+
+  /** Trwająca rozgrywka – żeby przeładowanie strony lub zamknięcie aplikacji jej nie przerwało. */
+  saveSession(session) { this.data.session = session; this.save(); },
+  clearSession() { if (this.data.session) { delete this.data.session; this.save(); } }
 };
 
 /** Uzupełnia brakujące pola ustawień wartościami domyślnymi. */
