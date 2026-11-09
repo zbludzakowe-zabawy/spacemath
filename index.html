@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MathSpace – kosmiczne liczenie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="stage">
+    <canvas id="game"></canvas>
+
+    <!-- Przyciski w trakcie gry -->
+    <div id="ingame-buttons" class="hidden">
+      <button id="btn-mute" class="icon-btn" title="Dźwięk (M)">🔊</button>
+      <button id="btn-pause" class="icon-btn" title="Pauza (Esc)">⏸</button>
+    </div>
+
+    <!-- MENU: wybór gracza -->
+    <section id="screen-menu" class="screen">
+      <h1 class="logo">MATH<span>SPACE</span></h1>
+      <p class="subtitle">Zestrzel statki, rozwiązując działania!</p>
+      <h2>Kto gra?</h2>
+      <div id="player-cards" class="player-cards"></div>
+      <p class="hint">Niebieski ufoludek to gość – jego ustawienia nie są zapamiętywane.</p>
+    </section>
+
+    <!-- USTAWIENIA -->
+    <section id="screen-settings" class="screen hidden">
+      <div class="panel settings-panel">
+        <div class="settings-head">
+          <canvas id="settings-ufo" width="120" height="90"></canvas>
+          <div>
+            <h2 id="settings-title">Ustawienia</h2>
+            <p id="settings-note" class="note"></p>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <div class="sliders">
+            <label class="slider-row">
+              <span>V – prędkość lotu</span>
+              <input type="range" id="set-speed" min="1" max="10" step="1">
+              <output id="out-speed">5</output>
+            </label>
+            <label class="slider-row">
+              <span>R – częstotliwość statków</span>
+              <input type="range" id="set-rate" min="1" max="10" step="1">
+              <output id="out-rate">5</output>
+            </label>
+          </div>
+
+          <div class="ops">
+            <div class="op-row">
+              <label class="op-check"><input type="checkbox" id="op-add"> <b>+</b> Dodawanie</label>
+              <span class="op-range">składniki od <input type="number" id="add-min" min="0"> wynik do <input type="number" id="add-max" min="1"></span>
+            </div>
+            <div class="op-row">
+              <label class="op-check"><input type="checkbox" id="op-sub"> <b>−</b> Odejmowanie</label>
+              <span class="op-range">liczby od <input type="number" id="sub-min" min="0"> do <input type="number" id="sub-max" min="1"></span>
+            </div>
+            <div class="op-row">
+              <label class="op-check"><input type="checkbox" id="op-mul"> <b>×</b> Mnożenie</label>
+              <span class="op-range">czynniki od <input type="number" id="mul-min" min="0"> do <input type="number" id="mul-max" min="1"></span>
+            </div>
+            <div class="op-row">
+              <label class="op-check"><input type="checkbox" id="op-div"> <b>:</b> Dzielenie</label>
+              <span class="op-range">dzielnik od <input type="number" id="div-min" min="1"> do <input type="number" id="div-max" min="1">, dzielna do <input type="number" id="div-dmax" min="1"></span>
+            </div>
+          </div>
+        </div>
+
+        <div id="weak-box" class="weak-box">
+          <span class="weak-label">Do powtórki:</span>
+          <span id="weak-list" class="weak-list"></span>
+          <button id="btn-weak-clear" class="small-btn">Wyczyść</button>
+        </div>
+
+        <p id="settings-error" class="error"></p>
+
+        <div class="buttons">
+          <button id="btn-back" class="btn secondary">← Wróć</button>
+          <button id="btn-defaults" class="btn secondary">Domyślne</button>
+          <button id="btn-start" class="btn primary">Start! 🚀</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAUZA -->
+    <section id="screen-pause" class="screen dim hidden">
+      <div class="panel small">
+        <h2>Pauza</h2>
+        <div class="buttons column">
+          <button id="btn-resume" class="btn primary">Graj dalej</button>
+          <button id="btn-quit" class="btn secondary">Zakończ grę</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ZWYCIĘSTWO (po 5 planszach) -->
+    <section id="screen-victory" class="screen transparent hidden">
+      <div class="panel small glow">
+        <h2 class="big">🏆 Brawo! 🏆</h2>
+        <p>Wszystkie <b>5 plansz</b> ukończone!</p>
+        <p id="victory-stats"></p>
+        <div class="buttons column">
+          <button id="btn-continue" class="btn primary">Graj dalej 🚀</button>
+          <button id="btn-finish" class="btn secondary">Zakończ</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PODSUMOWANIE -->
+    <section id="screen-summary" class="screen dim hidden">
+      <div class="panel small">
+        <h2>Koniec misji</h2>
+        <div id="summary-stats" class="summary-stats"></div>
+        <div id="summary-weak" class="weak-box"></div>
+        <div class="buttons">
+          <button id="btn-again" class="btn primary">Zagraj jeszcze raz</button>
+          <button id="btn-menu" class="btn secondary">Menu</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/problems.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/graphics.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
