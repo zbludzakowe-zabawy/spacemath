@@ -3,7 +3,9 @@
 
 const POINTS_PER_LEVEL = 10;
 const LEVELS_TO_WIN = 5;
-const LANE_TOP = 105, LANE_GAP = 70, LANE_COUNT = 7; // pasy, po których lecą statki
+// pasy, po których lecą statki; na telefonie mniej pasów, bo statki są większe
+const LANES_NORMAL = { top: 105, gap: 70, count: 7 };
+const LANES_BIG = { top: 118, gap: 98, count: 5 };
 const UFO_Y = H - 118;
 
 const $ = id => document.getElementById(id);
@@ -496,8 +498,10 @@ function spawnShip() {
   for (const s of game.ships) { avoid.keys.add(s.problem.key); avoid.answers.add(s.problem.answer); }
 
   // wolne pasy: żaden statek w pasie nie jest jeszcze przy lewej krawędzi
+  const lanes = touchMode ? LANES_BIG : LANES_NORMAL;
+  const style = touchMode ? SHIP_STYLE_BIG : SHIP_STYLE_NORMAL;
   const free = [];
-  for (let i = 0; i < LANE_COUNT; i++) {
+  for (let i = 0; i < lanes.count; i++) {
     const inLane = game.ships.filter(s => s.lane === i);
     if (inLane.every(s => s.x > 60)) free.push(i);
   }
@@ -510,11 +514,11 @@ function spawnShip() {
   const problem = isCampaign()
     ? generateCampaignProblem(game.level, game.profile.weak, avoid)
     : generateProblem(game.settings, game.level, game.profile.weak, avoid);
-  const w = shipLength(ctx, problem.text);
+  const w = shipLength(ctx, problem.text, style);
   game.ships.push({
-    problem, lane, w,
+    problem, lane, w, style,
     x: -w - 20,
-    y: LANE_TOP + lane * LANE_GAP + (Math.random() * 10 - 5),
+    y: lanes.top + lane * lanes.gap + (Math.random() * 10 - 5),
     color: SHIP_COLORS[Math.floor(Math.random() * SHIP_COLORS.length)],
     seed: Math.random() * 100,
   });
@@ -920,9 +924,11 @@ function drawInput(color, t) {
   const shake = game.inputShake > 0 ? Math.sin(t * 60) * 8 * (game.inputShake / 0.4) : 0;
   const x = game.ufo.x + shake, y = H - 38;
   const text = game.input || '';
-  ctx.font = `700 34px ${FONT}`;
-  const w = Math.max(text ? 150 : 240, ctx.measureText(text).width + 70);
-  roundRect(ctx, x - w / 2, y - 26, w, 52, 16);
+  const big = touchMode;
+  ctx.font = `700 ${big ? 48 : 34}px ${FONT}`;
+  const w = Math.max(text ? (big ? 190 : 150) : 240, ctx.measureText(text).width + 70);
+  const bh = big ? 64 : 52;
+  roundRect(ctx, x - w / 2, y - bh / 2, w, bh, 16);
   ctx.fillStyle = game.inputFlash > 0 ? `rgba(120,10,25,0.85)` : 'rgba(8,14,40,0.85)';
   ctx.fill();
   ctx.lineWidth = 3;
@@ -936,7 +942,7 @@ function drawInput(color, t) {
     ctx.fillText(text + cursor, x + (cursor ? 8 : 0), y + 2);
   } else {
     ctx.fillStyle = 'rgba(200,215,255,0.45)';
-    ctx.font = `500 20px ${FONT}`;
+    ctx.font = `500 ${big ? 26 : 20}px ${FONT}`;
     ctx.fillText(game.state === 'playing' ? (touchMode ? 'wpisz wynik i 🚀' : 'wpisz wynik + Enter') : '', x, y + 2);
   }
 }
