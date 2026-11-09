@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#14104a">
   <title>MathSpace</title>
   <meta name="description" content="Kosmiczna gra do nauki dodawania, odejmowania, mnożenia i dzielenia.">
@@ -136,6 +136,17 @@
       </div>
     </section>
   </div>
+
+  <!-- Klawiatura na ekranie (telefon / tablet) -->
+  <div id="keypad" class="keypad hidden" aria-label="Klawiatura z cyframi">
+    <button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button>
+    <button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button>
+    <button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button>
+    <button data-key="back" class="back" aria-label="Skasuj cyfrę">⌫</button>
+    <button data-key="0">0</button>
+    <button data-key="fire" class="fire" aria-label="Strzał">🚀</button>
+  </div>
+  <div id="rotate-hint" class="rotate-hint hidden">📱↻ Obróć telefon poziomo – statki będą większe</div>
 
   <div class="app-banner" id="install-banner" hidden>
     <img src="icons/icon-192.png" alt="" width="40" height="40">
