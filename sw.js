@@ -10,6 +10,7 @@ const ASSETS = [
   './css/style.css',
   './js/storage.js',
   './js/problems.js',
+  './js/campaign.js',
   './js/audio.js',
   './js/graphics.js',
   './js/game.js',

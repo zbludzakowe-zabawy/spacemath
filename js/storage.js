@@ -53,6 +53,7 @@ const Store = {
       if (!this.guestSession) {
         this.guestSession = { name: def.defaultName, settings: cloneDeep(DEFAULT_SETTINGS), weak: {}, best: 0 };
       }
+      normalizeCampaign(this.guestSession);
       return this.guestSession;
     }
     let p = this.data.players[id];
@@ -63,6 +64,7 @@ const Store = {
     p.settings = mergeSettings(p.settings);
     if (!p.weak) p.weak = {};
     if (typeof p.best !== 'number') p.best = 0;
+    normalizeCampaign(p);
     if (!p.name) p.name = def.defaultName;
     return p;
   },
@@ -78,6 +80,18 @@ const Store = {
   saveSession(session) { this.data.session = session; this.save(); },
   clearSession() { if (this.data.session) { delete this.data.session; this.save(); } }
 };
+
+/**
+ * Tryb gry i kampania: mode = 'campaign' | 'custom',
+ * campaignLevel – od którego poziomu kampanii zacząć (ostatnio osiągnięty albo wybrany),
+ * campaignMax – najwyższy osiągnięty poziom kampanii.
+ */
+function normalizeCampaign(p) {
+  if (p.mode !== 'campaign' && p.mode !== 'custom') p.mode = 'campaign';
+  const lv = n => Number.isFinite(n) ? Math.max(1, Math.min(20, Math.round(n))) : 1;
+  p.campaignLevel = lv(p.campaignLevel);
+  p.campaignMax = Number.isFinite(p.campaignMax) ? Math.max(0, Math.min(20, Math.round(p.campaignMax))) : 0;
+}
 
 /** Uzupełnia brakujące pola ustawień wartościami domyślnymi. */
 function mergeSettings(s) {
