@@ -21,7 +21,8 @@ i **działa bez internetu** (bez internetu napisy mają zwykłą czcionkę).
 - **Android (Chrome, Edge, Samsung):** baner **Zainstaluj** – albo ⋮ → **Zainstaluj aplikację**.
 - **iPhone / iPad:** w **Safari** stuknij **Udostępnij** → **Do ekranu początkowego** (gra sama to podpowie).
 
-Gra na razie jest przeznaczona na komputer – wynik wpisuje się z klawiatury.
+Na telefonie i tablecie w trakcie gry pojawia się **klawiatura z cyframi**: ⌫ kasuje cyfrę,
+🚀 strzela. Najwygodniej grać z telefonem obróconym poziomo – statki są wtedy większe.
 
 Gra **zapamiętuje trwającą rozgrywkę** (gracz, plansza, punkty). Jeśli przeładujesz stronę albo
 zamkniesz aplikację, po ponownym otwarciu gra czeka na pauzie – **Graj dalej** wraca do tej samej
@@ -53,6 +54,8 @@ Jednorazowo w ustawieniach repozytorium: **Settings → Pages → Source: GitHub
 | ← → | ruch ufoludka |
 | Esc / P | pauza |
 | M | dźwięk wł./wył. |
+
+Na telefonie i tablecie zamiast klawiatury jest klawiatura z cyframi na ekranie (🚀 = strzał).
 
 Gdy kilka statków ma ten sam wynik, zestrzelony zostaje ten, który jest najbliżej prawej krawędzi.
 

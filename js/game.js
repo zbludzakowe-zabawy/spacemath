@@ -44,12 +44,43 @@ const game = {
 /* Skalowanie sceny                                                     */
 /* ------------------------------------------------------------------ */
 
+/* Telefon / tablet: w trakcie gry pokazujemy klawiaturę z cyframi obok sceny. */
+let touchMode = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+window.addEventListener('touchstart', () => {
+  if (!touchMode) { touchMode = true; resize(); }
+}, { passive: true });
+
 function resize() {
-  const s = Math.min(window.innerWidth / W, window.innerHeight / H);
-  // scena 1280x720 wyśrodkowana i przeskalowana do rozmiaru okna
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const portrait = vh > vw;
+  const keypad = $('keypad'), hint = $('rotate-hint');
+  const showPad = touchMode && document.body.classList.contains('in-game');
+  let areaW = vw, areaH = vh;
+  keypad.classList.toggle('hidden', !showPad);
+  if (showPad) {
+    keypad.classList.toggle('side', !portrait);
+    if (portrait) {
+      const kh = Math.round(Math.min(330, Math.max(230, vh * 0.4)));
+      areaH = vh - kh;
+      Object.assign(keypad.style, { left: '0px', top: areaH + 'px', width: vw + 'px', height: kh + 'px' });
+    } else {
+      const kw = Math.round(Math.min(300, Math.max(190, vw * 0.27)));
+      areaW = vw - kw;
+      Object.assign(keypad.style, { left: areaW + 'px', top: '0px', width: kw + 'px', height: vh + 'px' });
+    }
+  }
+  const s = Math.min(areaW / W, areaH / H);
+  // scena 1280x720 przeskalowana do dostępnego miejsca; w pionie przy telefonie – u góry
+  const top = touchMode && portrait ? Math.min((areaH - H * s) / 2, 12) : (areaH - H * s) / 2;
   stage.style.left = '0';
   stage.style.top = '0';
-  stage.style.transform = `translate(${(window.innerWidth - W * s) / 2}px, ${(window.innerHeight - H * s) / 2}px) scale(${s})`;
+  stage.style.transform = `translate(${(areaW - W * s) / 2}px, ${top}px) scale(${s})`;
+
+  // w pionie na telefonie podpowiedź, żeby obrócić ekran
+  const gap = areaH - (top + H * s);
+  const showHint = touchMode && portrait && gap > 40;
+  hint.classList.toggle('hidden', !showHint);
+  if (showHint) hint.style.top = Math.round(top + H * s + gap / 2 - 12) + 'px';
   const res = Math.min(2.5, s * (window.devicePixelRatio || 1));
   canvas.width = Math.round(W * res);
   canvas.height = Math.round(H * res);
@@ -65,7 +96,9 @@ const SCREENS = ['screen-menu', 'screen-settings', 'screen-pause', 'screen-victo
 function showScreen(id) {
   for (const s of SCREENS) $(s).classList.toggle('hidden', s !== id);
   document.body.classList.toggle('in-game', ['playing', 'levelup', 'paused', 'victory'].includes(game.state));
+  document.body.classList.toggle('on-menu', game.state === 'menu');
   $('ingame-buttons').classList.toggle('hidden', !['playing', 'levelup', 'paused'].includes(game.state));
+  resize();
 }
 
 function playerDef(id) { return PLAYERS.find(p => p.id === id); }
@@ -555,7 +588,7 @@ window.addEventListener('keydown', e => {
   if (game.state !== 'playing') return;
 
   if (/^[0-9]$/.test(e.key)) {
-    if (game.input.length < 7) { game.input += e.key; Sound.key(); }
+    typeDigit(e.key);
     e.preventDefault();
   } else if (e.key === 'Backspace') {
     game.input = game.input.slice(0, -1);
@@ -571,6 +604,27 @@ window.addEventListener('keydown', e => {
   }
 });
 window.addEventListener('keyup', e => { game.keys[e.key] = false; });
+
+function typeDigit(d) {
+  if (game.input.length < 7) { game.input += d; Sound.key(); }
+}
+
+// klawiatura na ekranie: reaguje od razu na dotyk (pointerdown), bez opóźnienia kliknięcia
+$('keypad').addEventListener('pointerdown', e => {
+  const btn = e.target.closest('button[data-key]');
+  if (!btn) return;
+  e.preventDefault();
+  Sound.init();
+  btn.classList.add('pressed');
+  setTimeout(() => btn.classList.remove('pressed'), 120);
+  if (navigator.vibrate) { try { navigator.vibrate(8); } catch (err) { /* brak wibracji */ } }
+  if (game.state !== 'playing') return;
+  const k = btn.dataset.key;
+  if (k === 'back') game.input = game.input.slice(0, -1);
+  else if (k === 'fire') submitAnswer();
+  else typeDigit(k);
+});
+$('keypad').addEventListener('contextmenu', e => e.preventDefault());
 
 function toggleMute() {
   Sound.muted = !Sound.muted;
@@ -747,7 +801,7 @@ function drawInput(color, t) {
   } else {
     ctx.fillStyle = 'rgba(200,215,255,0.45)';
     ctx.font = `500 20px ${FONT}`;
-    ctx.fillText(game.state === 'playing' ? 'wpisz wynik + Enter' : '', x, y + 2);
+    ctx.fillText(game.state === 'playing' ? (touchMode ? 'wpisz wynik i 🚀' : 'wpisz wynik + Enter') : '', x, y + 2);
   }
 }
 
