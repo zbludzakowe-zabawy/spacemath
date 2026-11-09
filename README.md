@@ -36,7 +36,44 @@ Gdy opublikujemy nową wersję, gra pokaże **„Dostępna nowa wersja”**. **O
 Każde scalenie zmian do gałęzi `main` publikuje grę na GitHub Pages (`.github/workflows/pages.yml`).
 Jednorazowo w ustawieniach repozytorium: **Settings → Pages → Source: GitHub Actions**.
 
-## Zasady
+## Kampania – 20 poziomów
+
+Na ekranie ustawień są dwie zakładki: **Kampania** i **Własne ustawienia**.
+W kampanii każdy poziom ma z góry ustalone działania, prędkość statków (V) i częstotliwość (R),
+ułożone według klas szkoły podstawowej. Można zacząć od **klasy (1–8)** albo od **poziomu (1–20)**;
+przycisk **Zobacz tabelę wszystkich poziomów** pokazuje całą listę.
+
+| Poz. | Klasa | Działania | Przykłady | V | R |
+|---|---|---|---|---|---|
+| 1 | 1 | + do 10 | 4 + 5 | 2 | 2 |
+| 2 | 1 | + − do 10 | 9 − 3 | 3 | 3 |
+| 3 | 1 | + − do 20, bez przekraczania 10 | 13 + 4, 18 − 5 | 3 | 3 |
+| 4 | 1 | + − do 20, z przekraczaniem 10 | 8 + 7, 15 − 9 | 4 | 4 |
+| 5 | 2 | + − pełnymi dziesiątkami do 100 | 30 + 50, 90 − 40 | 3 | 3 |
+| 6 | 2 | + − do 100: dwucyfrowa ± jednocyfrowa | 47 + 6, 52 − 8 | 4 | 4 |
+| 7 | 2 | × od ×2 do ×5 (wynik do 50) | 4 × 7 | 3 | 3 |
+| 8 | 2 | × : do 50 + powtórka + − | 35 : 5 | 4 | 4 |
+| 9 | 3 | + − do 100: dwucyfrowa ± dwucyfrowa | 47 + 38, 83 − 29 | 4 | 4 |
+| 10 | 3 | × cała tabliczka mnożenia | 7 × 8 | 4 | 4 |
+| 11 | 3 | : w zakresie tabliczki | 56 : 7 | 4 | 4 |
+| 12 | 3 | wszystkie 4 działania do 100 | mieszanka | 5 | 5 |
+| 13 | 4 | + − do 1000 pełnymi setkami i dziesiątkami | 450 + 230 | 5 | 5 |
+| 14 | 4 | × : przez 10 i 100, pełnymi dziesiątkami | 30 × 4, 240 : 6 | 5 | 5 |
+| 15 | 4 | dwucyfrowa × jednocyfrowa, dzielna do 100 | 14 × 6, 84 : 4 | 5 | 5 |
+| 16 | 5 | + − do 1000, dowolne liczby | 367 + 248 | 6 | 5 |
+| 17 | 5 | trzycyfrowa : jednocyfrowa | 852 : 6 | 6 | 6 |
+| 18 | 6 | × do 20 × 20 | 15 × 12, 17 × 17 | 6 | 6 |
+| 19 | 7 | wszystkie działania, większe liczby | mieszanka | 7 | 7 |
+| 20 | 8 | „Mistrz”: wszystko, szybko | mieszanka | 8 | 8 |
+
+- co **10 punktów** – następny poziom; po **20. poziomie** gra gratuluje – można grać dalej na 20. poziomie,
+- zapisani gracze mają zapamiętany najwyższy osiągnięty poziom; następnym razem gra proponuje start
+  od poziomu, na którym skończyli,
+- działania „do powtórki” wracają tylko na tym samym albo kilku kolejnych poziomach kampanii.
+
+Poziomy są opisane w `js/campaign.js`.
+
+## Zasady (własne ustawienia)
 
 - zestrzelony statek: **+1 punkt**,
 - statek, który wyleci z prawej strony ekranu: **−1 punkt**,
@@ -88,7 +125,8 @@ i nie ma dzielenia przez 1), a statki lecą szybciej i pojawiają się częście
 
 - `index.html`, `css/style.css` – strona i ekrany menu,
 - `js/game.js` – główna logika gry,
-- `js/problems.js` – losowanie działań i utrudnianie na kolejnych planszach,
+- `js/problems.js` – losowanie działań i utrudnianie na kolejnych planszach (własne ustawienia),
+- `js/campaign.js` – 20 poziomów kampanii i losowanie działań dla nich,
 - `js/graphics.js` – tła plansz, ufoludek, statki, wybuchy i fajerwerki,
 - `js/audio.js` – efekty dźwiękowe (generowane, bez plików),
 - `js/storage.js` – gracze, zapis ustawień i trwającej gry,

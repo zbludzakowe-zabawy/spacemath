@@ -20,6 +20,8 @@ const game = {
   playerId: null,
   profile: null,
   settings: null,
+  mode: 'custom',         // custom (własne ustawienia) | campaign (20 poziomów)
+  startLevel: 1,          // od którego poziomu zaczęła się gra
   level: 1,
   score: 0,
   stats: null,
@@ -92,7 +94,7 @@ window.addEventListener('resize', resize);
 /* Ekrany                                                               */
 /* ------------------------------------------------------------------ */
 
-const SCREENS = ['screen-menu', 'screen-settings', 'screen-pause', 'screen-victory', 'screen-summary'];
+const SCREENS = ['screen-menu', 'screen-settings', 'screen-table', 'screen-pause', 'screen-victory', 'screen-summary'];
 function showScreen(id) {
   for (const s of SCREENS) $(s).classList.toggle('hidden', s !== id);
   document.body.classList.toggle('in-game', ['playing', 'levelup', 'paused', 'victory'].includes(game.state));
@@ -139,7 +141,9 @@ function buildMenu() {
 
     const info = document.createElement('div');
     info.className = 'pinfo';
-    info.textContent = def.guest ? 'gra bez zapisywania' : (prof.best ? `rekord: ${prof.best} pkt` : 'nowy gracz');
+    info.textContent = def.guest ? 'gra bez zapisywania'
+      : [prof.campaignMax ? `kampania: poziom ${prof.campaignMax}` : '', prof.best ? `rekord: ${prof.best} pkt` : '']
+        .filter(Boolean).join(' · ') || 'nowy gracz';
     card.appendChild(info);
 
     const choose = () => { Sound.init(); openSettings(def.id); };
@@ -189,6 +193,8 @@ function openSettings(id) {
     ? 'Gość: ustawienia obowiązują tylko do zamknięcia gry.'
     : 'Ustawienia zostaną zapamiętane na następny raz.';
   fillSettingsForm(game.profile.settings);
+  game.pickedLevel = game.profile.campaignLevel;
+  setMode(game.profile.mode);
   renderWeak();
   $('settings-error').textContent = '';
   showScreen('screen-settings');
@@ -246,6 +252,85 @@ function readSettingsForm() {
   return { settings: s };
 }
 
+/* ---------- Kampania: wybór klasy / poziomu i tabela ---------- */
+
+function setMode(mode) {
+  game.uiMode = mode;
+  $('tab-campaign').classList.toggle('active', mode === 'campaign');
+  $('tab-custom').classList.toggle('active', mode === 'custom');
+  $('pane-campaign').classList.toggle('hidden', mode !== 'campaign');
+  $('pane-custom').classList.toggle('hidden', mode !== 'custom');
+  $('btn-defaults').classList.toggle('hidden', mode !== 'custom');
+  $('settings-error').textContent = '';
+  if (mode === 'campaign') renderCampaignPicker();
+}
+
+function pickLevel(level) {
+  game.pickedLevel = Math.max(1, Math.min(CAMPAIGN_LEVELS_COUNT, level));
+  renderCampaignPicker();
+}
+
+function buildCampaignPicker() {
+  const gw = $('grade-buttons'), lw = $('level-buttons');
+  for (let g = 1; g <= 8; g++) {
+    const b = document.createElement('button');
+    b.className = 'pick-btn grade';
+    b.dataset.grade = g;
+    b.textContent = g;
+    b.title = `Klasa ${g} – od poziomu ${firstLevelOfGrade(g)}`;
+    b.addEventListener('click', () => pickLevel(firstLevelOfGrade(g)));
+    gw.appendChild(b);
+  }
+  for (const L of CAMPAIGN) {
+    const b = document.createElement('button');
+    b.className = 'pick-btn';
+    b.dataset.level = L.level;
+    b.textContent = L.level;
+    b.title = `Poziom ${L.level} (klasa ${L.grade}): ${L.desc}`;
+    b.addEventListener('click', () => pickLevel(L.level));
+    lw.appendChild(b);
+  }
+  const tb = $('levels-tbody');
+  for (const L of CAMPAIGN) {
+    const tr = document.createElement('tr');
+    tr.dataset.level = L.level;
+    tr.dataset.grade = L.grade;
+    tr.innerHTML = `<td><b>${L.level}</b></td><td>${L.grade}</td><td>${escapeHtml(L.desc)}</td>` +
+      `<td class="ex">${escapeHtml(L.ex)}</td><td>${L.v}</td><td>${L.r}</td>`;
+    tr.addEventListener('click', () => { pickLevel(L.level); closeTable(); });
+    tb.appendChild(tr);
+  }
+}
+
+function renderCampaignPicker() {
+  const L = campaignLevel(game.pickedLevel);
+  document.querySelectorAll('#grade-buttons .pick-btn').forEach(b =>
+    b.classList.toggle('active', +b.dataset.grade === L.grade));
+  const max = game.profile ? game.profile.campaignMax : 0;
+  document.querySelectorAll('#level-buttons .pick-btn').forEach(b => {
+    b.classList.toggle('active', +b.dataset.level === L.level);
+    b.classList.toggle('done', +b.dataset.level <= max);
+  });
+  $('level-info').innerHTML =
+    `<b>Poziom ${L.level}</b> · klasa ${L.grade}<br>${escapeHtml(L.desc)} ` +
+    `<span class="ex">np. ${escapeHtml(L.ex)}</span>` +
+    `<span class="vr">V ${L.v} · R ${L.r}</span>`;
+}
+
+function openTable() {
+  document.querySelectorAll('#levels-tbody tr').forEach(tr =>
+    tr.classList.toggle('active', +tr.dataset.level === game.pickedLevel));
+  $('screen-table').classList.remove('hidden');
+  const row = document.querySelector('#levels-tbody tr.active');
+  if (row) row.scrollIntoView({ block: 'nearest' });
+}
+function closeTable() { $('screen-table').classList.add('hidden'); }
+
+$('tab-campaign').addEventListener('click', () => setMode('campaign'));
+$('tab-custom').addEventListener('click', () => setMode('custom'));
+$('btn-table').addEventListener('click', openTable);
+$('btn-table-close').addEventListener('click', closeTable);
+
 function weakSorted(weak) {
   return Object.values(weak).sort((a, b) => b.n - a.n);
 }
@@ -270,6 +355,14 @@ $('btn-weak-clear').addEventListener('click', () => {
   renderWeak();
 });
 $('btn-start').addEventListener('click', () => {
+  if (game.uiMode === 'campaign') {
+    game.profile.mode = 'campaign';
+    game.profile.campaignLevel = game.pickedLevel;
+    Store.persist(game.playerId);
+    startGame();
+    return;
+  }
+  game.profile.mode = 'custom';
   const res = readSettingsForm();
   if (res.error) { $('settings-error').textContent = res.error; Sound.wrong(); return; }
   game.profile.settings = res.settings;
@@ -284,7 +377,9 @@ $('btn-start').addEventListener('click', () => {
 function startGame() {
   Sound.init();
   game.settings = game.profile.settings;
-  game.level = 1;
+  game.mode = game.profile.mode;
+  game.startLevel = game.mode === 'campaign' ? game.profile.campaignLevel : 1;
+  game.level = game.startLevel;
   game.score = 0;
   game.stats = { hits: 0, escaped: 0, wrong: 0, startedAt: Date.now() };
   game.ships = [];
@@ -296,10 +391,10 @@ function startGame() {
   game.ufo.x = game.ufo.targetX = W / 2;
   particles.list = []; particles.rings = [];
   fireworks.stop();
-  setBackground(1);
+  setBackground(game.level);
   game.state = 'playing';
   showScreen(null);
-  showBanner(`Plansza 1`, themeFor(1).title, 2.2);
+  showLevelBanner();
   saveSession();
 }
 
@@ -314,6 +409,8 @@ function saveSession() {
   const guest = playerDef(game.playerId).guest;
   Store.saveSession({
     playerId: game.playerId,
+    mode: game.mode,
+    startLevel: game.startLevel,
     level: game.level,
     score: game.score,
     stats: game.stats,
@@ -338,10 +435,13 @@ function restoreSession() {
     game.profile.weak = ses.weak || {};
   }
   game.settings = game.profile.settings;
-  game.level = Math.max(1, ses.level);
+  game.mode = ses.mode === 'campaign' ? 'campaign' : 'custom';
+  const maxLevel = game.mode === 'campaign' ? CAMPAIGN_LEVELS_COUNT : Infinity;
+  game.level = Math.max(1, Math.min(maxLevel, ses.level));
+  game.startLevel = Number.isFinite(ses.startLevel) ? Math.max(1, Math.min(game.level, ses.startLevel)) : 1;
   game.score = ses.score;
   game.stats = Object.assign({ hits: 0, escaped: 0, wrong: 0, startedAt: Date.now() }, ses.stats);
-  game.victoryShown = !!ses.victoryShown || game.level > LEVELS_TO_WIN;
+  game.victoryShown = !!ses.victoryShown || (game.mode === 'custom' && game.level > LEVELS_TO_WIN);
   game.ships = [];
   game.lasers = [];
   game.texts = [];
@@ -363,14 +463,32 @@ function setBackground(level) {
   }
 }
 
+const isCampaign = () => game.mode === 'campaign';
+
+/* Kampania: V i R z tabeli poziomów. Własne ustawienia: V i R gracza, szybciej na kolejnych planszach. */
 function shipSpeed() {
+  if (isCampaign()) return 28 + campaignLevel(game.level).v * 13;
   const v = game.settings.speed;
   return (28 + v * 13) * (1 + 0.1 * (game.level - 1));
 }
 
 function spawnInterval() {
+  if (isCampaign()) return 7.6 - campaignLevel(game.level).r * 0.6;
   const r = game.settings.rate;
   return (7.6 - r * 0.6) / (1 + 0.1 * (game.level - 1));
+}
+
+/** Napis na planszy: tytuł i podpis. */
+function levelTitle(level) {
+  return isCampaign() ? `Poziom ${level}` : `Plansza ${level}`;
+}
+function levelSubtitle(level) {
+  if (!isCampaign()) return themeFor(level).title;
+  const L = campaignLevel(level);
+  return `Klasa ${L.grade} · ${L.desc}`;
+}
+function showLevelBanner() {
+  showBanner(levelTitle(game.level), levelSubtitle(game.level), 2.6);
 }
 
 function spawnShip() {
@@ -389,7 +507,9 @@ function spawnShip() {
     || Math.random() - 0.5);
   const lane = free[Math.floor(Math.random() * Math.min(3, free.length))];
 
-  const problem = generateProblem(game.settings, game.level, game.profile.weak, avoid);
+  const problem = isCampaign()
+    ? generateCampaignProblem(game.level, game.profile.weak, avoid)
+    : generateProblem(game.settings, game.level, game.profile.weak, avoid);
   const w = shipLength(ctx, problem.text);
   game.ships.push({
     problem, lane, w,
@@ -406,7 +526,11 @@ function addWeak(p, amount) {
   const w = weak[p.key];
   if (amount > 0) {
     if (w) w.n = Math.min(6, w.n + amount);
-    else weak[p.key] = { op: p.op, a: p.a, b: p.b, n: amount };
+    else {
+      weak[p.key] = { op: p.op, a: p.a, b: p.b, n: amount };
+      // poziom kampanii, z którego pochodzi działanie (żeby wracało tylko na podobnych poziomach)
+      if (isCampaign()) weak[p.key].lv = game.level;
+    }
   } else if (w) {
     w.n += amount;
     if (w.n <= 0) delete weak[p.key];
@@ -463,7 +587,9 @@ function shipEscaped(ship) {
 }
 
 function checkLevel() {
-  if (game.score >= game.level * POINTS_PER_LEVEL) levelUp();
+  // po ukończeniu ostatniego poziomu kampanii gramy dalej na nim, bez kolejnych poziomów
+  if (isCampaign() && game.level >= CAMPAIGN_LEVELS_COUNT && game.victoryShown) return;
+  if (game.score >= (game.level - game.startLevel + 1) * POINTS_PER_LEVEL) levelUp();
 }
 
 function levelUp() {
@@ -472,16 +598,25 @@ function levelUp() {
   game.ships = [];
   game.input = '';
   const finished = game.level;
-  game.level++;
+  const campaignDone = isCampaign() && finished >= CAMPAIGN_LEVELS_COUNT;
+  if (!campaignDone) game.level++;
+  if (isCampaign()) {
+    game.profile.campaignMax = Math.max(game.profile.campaignMax, finished);
+    game.profile.campaignLevel = game.level;
+    Store.persist(game.playerId);
+  }
   setBackground(game.level);
   Sound.levelUp();
   fireworks.start();
   for (let i = 0; i < 4; i++) fireworks.launch();
 
-  if (finished === LEVELS_TO_WIN && !game.victoryShown) {
+  if ((campaignDone || (!isCampaign() && finished === LEVELS_TO_WIN)) && !game.victoryShown) {
     game.victoryShown = true;
     game.state = 'victory';
     Sound.victory();
+    $('victory-text').innerHTML = !isCampaign() ? 'Wszystkie <b>5 plansz</b> ukończone!'
+      : game.startLevel === 1 ? 'Wszystkie <b>20 poziomów</b> kampanii ukończone!'
+      : 'Ukończony ostatni, <b>20. poziom</b> kampanii!';
     $('victory-stats').innerHTML = `Punkty: <b>${game.score}</b> · zestrzelone statki: <b>${game.stats.hits}</b>`;
     showScreen('screen-victory');
     saveBest();
@@ -489,7 +624,7 @@ function levelUp() {
   }
   game.state = 'levelup';
   game.levelTimer = 4.2;
-  showBanner(`Poziom ${game.level}!`, themeFor(game.level).title, 4.2, true);
+  showBanner(isCampaign() ? `Poziom ${game.level}!` : `Plansza ${game.level}!`, levelSubtitle(game.level), 4.2, true);
 }
 
 function continueAfterVictory() {
@@ -497,7 +632,7 @@ function continueAfterVictory() {
   game.state = 'playing';
   game.spawnTimer = 1;
   showScreen(null);
-  showBanner(`Plansza ${game.level}`, themeFor(game.level).title, 2.2);
+  showLevelBanner();
   saveSession();
 }
 
@@ -522,7 +657,7 @@ function resume() {
   if (game.restored) {
     game.restored = false;
     Sound.init();
-    showBanner(`Plansza ${game.level}`, themeFor(game.level).title, 2.2);
+    showLevelBanner();
   }
 }
 
@@ -538,7 +673,7 @@ function endGame() {
   $('summary-stats').innerHTML = `
     <span>Gracz</span><b style="color:${playerDef(game.playerId).color}">${escapeHtml(game.profile.name)}</b>
     <span>Punkty</span><b>${game.score}</b>
-    <span>Plansza</span><b>${game.level}</b>
+    <span>${isCampaign() ? 'Poziom kampanii' : 'Plansza'}</span><b>${game.level}</b>
     <span>Zestrzelone statki</span><b>${st.hits}</b>
     <span>Statki, które uciekły</span><b>${st.escaped}</b>
     <span>Błędne odpowiedzi</span><b>${st.wrong}</b>
@@ -573,6 +708,7 @@ window.addEventListener('keydown', e => {
   if (e.target && e.target.tagName === 'INPUT') return;
 
   if (e.key === 'm' || e.key === 'M') { toggleMute(); return; }
+  if (e.key === 'Escape' && !$('screen-table').classList.contains('hidden')) { closeTable(); return; }
 
   if (game.state === 'paused') {
     if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') resume();
@@ -827,9 +963,11 @@ function drawHud(color) {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#e8f0ff';
   ctx.font = `600 22px ${FONT}`;
-  ctx.fillText(`Plansza ${game.level} · ${th.title}`, W / 2, 22);
+  ctx.fillText(isCampaign()
+    ? `Poziom ${game.level}/${CAMPAIGN_LEVELS_COUNT} · Klasa ${campaignLevel(game.level).grade}`
+    : `Plansza ${game.level} · ${th.title}`, W / 2, 22);
   const bw = 300, bx = W / 2 - bw / 2, by = 40;
-  const base = (game.level - 1) * POINTS_PER_LEVEL;
+  const base = (game.level - game.startLevel) * POINTS_PER_LEVEL;
   const prog = Math.max(0, Math.min(1, (game.score - base) / POINTS_PER_LEVEL));
   roundRect(ctx, bx, by, bw, 14, 7);
   ctx.fillStyle = 'rgba(255,255,255,0.12)';
@@ -842,11 +980,18 @@ function drawHud(color) {
     ctx.fillStyle = pg;
     ctx.fill();
   }
-  // gwiazdki ukończonych plansz (do 5)
+  // gwiazdki ukończonych plansz (do 5); w kampanii – liczba ukończonych w tej grze
   ctx.font = `20px ${FONT}`;
-  for (let i = 0; i < LEVELS_TO_WIN; i++) {
-    ctx.fillStyle = i < game.level - 1 ? '#ffd84a' : 'rgba(255,255,255,0.2)';
-    ctx.fillText('★', bx + bw + 24 + i * 22, by + 7);
+  if (isCampaign()) {
+    const done = game.level - game.startLevel + (game.victoryShown ? 1 : 0);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = done ? '#ffd84a' : 'rgba(255,255,255,0.35)';
+    ctx.fillText(`★ ${done}`, bx + bw + 16, by + 7);
+  } else {
+    for (let i = 0; i < LEVELS_TO_WIN; i++) {
+      ctx.fillStyle = i < game.level - 1 ? '#ffd84a' : 'rgba(255,255,255,0.2)';
+      ctx.fillText('★', bx + bw + 24 + i * 22, by + 7);
+    }
   }
 
   // punkty
@@ -897,6 +1042,7 @@ Store.load();
 Sound.muted = Store.data.muted;
 $('btn-mute').textContent = Sound.muted ? '🔇' : '🔊';
 resize();
+buildCampaignPicker();
 buildMenu();
 showScreen('screen-menu');
 restoreSession();
