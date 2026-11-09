@@ -57,6 +57,12 @@ html, body {
   padding: 24px;
 }
 .screen.dim { background: rgba(0, 0, 10, 0.55); }
+/* Pauza: zasłania planszę, żeby nie było widać działań do policzenia */
+.screen.cover {
+  background:
+    radial-gradient(ellipse at center, rgba(40, 30, 110, 0.9) 0%, rgba(8, 6, 30, 0.98) 70%),
+    #08061e;
+}
 .screen.transparent { background: transparent; pointer-events: none; }
 .screen.transparent .panel { pointer-events: auto; }
 
