@@ -1,11 +1,11 @@
 'use strict';
 /*
- * Kampania: 20 poziomów ułożonych według klas szkoły podstawowej.
+ * Kampania: 30 poziomów ułożonych według klas szkoły podstawowej.
  * Każdy poziom ma na stałe wpisane działania, prędkość statków (V)
  * i częstotliwość (R) – ustawienia gracza nie mają tu znaczenia.
  */
 
-const CAMPAIGN_LEVELS_COUNT = 20;
+const CAMPAIGN_LEVELS_COUNT = 30;
 
 /* --- pomocnicze generatory ------------------------------------------- */
 
@@ -87,7 +87,7 @@ const G = {
   // trzycyfrowa : jednocyfrowa: 852 : 6
   div3d1d() { const d = randInt(2, 9); return divBy(d, randInt(Math.ceil(100 / d), Math.floor(999 / d))); },
   // do 20 × 20: 15 × 12, 17 × 17
-  mulTeens() { return makeProblem('mul', randInt(11, 20), randInt(11, 20)); },
+  mulTeens(max = 20) { return makeProblem('mul', randInt(11, max), randInt(11, max)); },
   // trzycyfrowa : liczba od 11 do 20: 144 : 12
   divTeens() { return divBy(randInt(11, 20), randInt(2, 20)); },
 };
@@ -109,13 +109,24 @@ const CAMPAIGN = [
   { grade: 3, ops: ':',       desc: ': w zakresie tabliczki',                        ex: '56 : 7',              v: 4, r: 4, gens: [() => G.divTable(2, 10)] },
   { grade: 3, ops: '+ − × :', desc: 'wszystkie 4 działania do 100',                  ex: 'mieszanka',           v: 5, r: 5, gens: [() => G.addUpTo(100), () => G.subUpTo(100), () => G.mulTable(1, 10), () => G.divTable(2, 10)] },
   { grade: 4, ops: '+ −',     desc: '+ − do 1000 pełnymi setkami i dziesiątkami',    ex: '450 + 230',           v: 5, r: 5, gens: [G.addTens1000, G.subTens1000] },
+  // od poziomu 14 każdy nowy temat najpierw osobno i wolniej, potem razem i szybciej
+  { grade: 4, ops: '×',       desc: '× przez 10 i 100, pełnymi dziesiątkami',        ex: '30 × 4, 35 × 10',     v: 4, r: 4, gens: [G.mulTens] },
+  { grade: 4, ops: ':',       desc: ': przez 10 i 100, pełnymi dziesiątkami',        ex: '240 : 6, 700 : 100',  v: 4, r: 4, gens: [G.divTens] },
   { grade: 4, ops: '× :',     desc: '× : przez 10 i 100, pełnymi dziesiątkami',      ex: '30 × 4, 240 : 6',     v: 5, r: 5, gens: [G.mulTens, G.divTens] },
+  { grade: 4, ops: '×',       desc: 'dwucyfrowa × jednocyfrowa',                     ex: '14 × 6',              v: 4, r: 4, gens: [() => G.mul2d1d(25)] },
+  { grade: 4, ops: ':',       desc: ': dzielna do 100, iloraz dwucyfrowy',           ex: '84 : 4',              v: 4, r: 4, gens: [G.div100] },
   { grade: 4, ops: '× :',     desc: 'dwucyfrowa × jednocyfrowa, dzielna do 100',     ex: '14 × 6, 84 : 4',      v: 5, r: 5, gens: [() => G.mul2d1d(25), G.div100] },
-  { grade: 5, ops: '+ −',     desc: '+ − do 1000, dowolne liczby',                   ex: '367 + 248',           v: 6, r: 5, gens: [G.add3d, G.sub3d] },
-  { grade: 5, ops: ':',       desc: 'trzycyfrowa : jednocyfrowa',                    ex: '852 : 6',             v: 6, r: 6, gens: [G.div3d1d] },
-  { grade: 6, ops: '×',       desc: '× do 20 × 20',                                  ex: '15 × 12, 17 × 17',    v: 6, r: 6, gens: [G.mulTeens] },
-  { grade: 7, ops: '+ − × :', desc: 'wszystkie działania, większe liczby',           ex: 'mieszanka',           v: 7, r: 7, gens: [G.add3d, G.sub3d, () => G.mul2d1d(99), G.div3d1d] },
-  { grade: 8, ops: '+ − × :', desc: '„Mistrz”: wszystko, szybko',                    ex: 'mieszanka',           v: 8, r: 8, gens: [G.add3d, G.sub3d, G.mulTeens, () => G.mul2d1d(99), G.div3d1d, G.divTeens] },
+  { grade: 5, ops: '+',       desc: '+ do 1000, dowolne liczby',                     ex: '367 + 248',           v: 4, r: 4, gens: [G.add3d] },
+  { grade: 5, ops: '−',       desc: '− do 1000, dowolne liczby',                     ex: '815 − 469',           v: 4, r: 4, gens: [G.sub3d] },
+  { grade: 5, ops: '+ −',     desc: '+ − do 1000, dowolne liczby',                   ex: '367 + 248, 815 − 469', v: 5, r: 5, gens: [G.add3d, G.sub3d] },
+  { grade: 5, ops: ':',       desc: 'trzycyfrowa : jednocyfrowa',                    ex: '852 : 6',             v: 4, r: 4, gens: [G.div3d1d] },
+  { grade: 5, ops: '× :',     desc: 'trzycyfrowa : jednocyfrowa, × do 50 × 9',       ex: '852 : 6, 43 × 7',     v: 5, r: 5, gens: [G.div3d1d, () => G.mul2d1d(50)] },
+  { grade: 6, ops: '×',       desc: '× do 15 × 15',                                  ex: '13 × 12, 14 × 15',    v: 4, r: 4, gens: [() => G.mulTeens(15)] },
+  { grade: 6, ops: '×',       desc: '× do 20 × 20',                                  ex: '15 × 12, 17 × 17',    v: 5, r: 5, gens: [() => G.mulTeens(20)] },
+  { grade: 6, ops: ': ×',     desc: ': przez liczby od 11 do 20, × do 20 × 20',      ex: '144 : 12, 17 × 13',   v: 5, r: 5, gens: [G.divTeens, () => G.mulTeens(20)] },
+  { grade: 7, ops: '+ − × :', desc: 'wszystkie działania, większe liczby',           ex: 'mieszanka',           v: 6, r: 6, gens: [G.add3d, G.sub3d, () => G.mul2d1d(99), G.div3d1d] },
+  { grade: 7, ops: '+ − × :', desc: 'wszystkie działania, większe liczby, szybciej', ex: 'mieszanka',           v: 7, r: 7, gens: [G.add3d, G.sub3d, () => G.mul2d1d(99), G.div3d1d] },
+  { grade: 8, ops: '+ − × :', desc: '„Mistrz”: wszystko, szybko',                    ex: 'mieszanka',           v: 8, r: 8, gens: [G.add3d, G.sub3d, () => G.mulTeens(20), () => G.mul2d1d(99), G.div3d1d, G.divTeens] },
 ].map((l, i) => ({ ...l, level: i + 1 }));
 
 /** Pierwszy poziom danej klasy (1–8). */

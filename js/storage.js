@@ -86,11 +86,20 @@ const Store = {
  * campaignLevel – od którego poziomu kampanii zacząć (ostatnio osiągnięty albo wybrany),
  * campaignMax – najwyższy osiągnięty poziom kampanii.
  */
+// Kampania z 20 poziomami (wersja 1) -> 30 poziomów (wersja 2): stary poziom -> nowy o tej samej trudności
+const CAMPAIGN_V1_TO_V2 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 19, 22, 23, 26, 29, 30];
+
 function normalizeCampaign(p) {
   if (p.mode !== 'campaign' && p.mode !== 'custom') p.mode = 'campaign';
-  const lv = n => Number.isFinite(n) ? Math.max(1, Math.min(20, Math.round(n))) : 1;
+  if (p.campaignVer !== 2) {
+    const map = n => Number.isFinite(n) ? CAMPAIGN_V1_TO_V2[Math.max(0, Math.min(20, Math.round(n)))] : n;
+    p.campaignLevel = map(p.campaignLevel);
+    p.campaignMax = map(p.campaignMax);
+    p.campaignVer = 2;
+  }
+  const lv = n => Number.isFinite(n) ? Math.max(1, Math.min(30, Math.round(n))) : 1;
   p.campaignLevel = lv(p.campaignLevel);
-  p.campaignMax = Number.isFinite(p.campaignMax) ? Math.max(0, Math.min(20, Math.round(p.campaignMax))) : 0;
+  p.campaignMax = Number.isFinite(p.campaignMax) ? Math.max(0, Math.min(30, Math.round(p.campaignMax))) : 0;
 }
 
 /** Uzupełnia brakujące pola ustawień wartościami domyślnymi. */

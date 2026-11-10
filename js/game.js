@@ -22,7 +22,7 @@ const game = {
   playerId: null,
   profile: null,
   settings: null,
-  mode: 'custom',         // custom (własne ustawienia) | campaign (20 poziomów)
+  mode: 'custom',         // custom (własne ustawienia) | campaign (30 poziomów)
   startLevel: 1,          // od którego poziomu zaczęła się gra
   level: 1,
   score: 0,
@@ -412,6 +412,7 @@ function saveSession() {
   Store.saveSession({
     playerId: game.playerId,
     mode: game.mode,
+    campaignVer: 2,
     startLevel: game.startLevel,
     level: game.level,
     score: game.score,
@@ -439,8 +440,11 @@ function restoreSession() {
   game.settings = game.profile.settings;
   game.mode = ses.mode === 'campaign' ? 'campaign' : 'custom';
   const maxLevel = game.mode === 'campaign' ? CAMPAIGN_LEVELS_COUNT : Infinity;
-  game.level = Math.max(1, Math.min(maxLevel, ses.level));
-  game.startLevel = Number.isFinite(ses.startLevel) ? Math.max(1, Math.min(game.level, ses.startLevel)) : 1;
+  // zapis gry z czasów 20 poziomów kampanii: przelicz numery poziomów na nowe
+  const lvMap = n => game.mode === 'campaign' && ses.campaignVer !== 2 && Number.isFinite(n)
+    ? CAMPAIGN_V1_TO_V2[Math.max(1, Math.min(20, Math.round(n)))] : n;
+  game.level = Math.max(1, Math.min(maxLevel, lvMap(ses.level)));
+  game.startLevel = Number.isFinite(ses.startLevel) ? Math.max(1, Math.min(game.level, lvMap(ses.startLevel))) : 1;
   game.score = ses.score;
   game.stats = Object.assign({ hits: 0, escaped: 0, wrong: 0, startedAt: Date.now() }, ses.stats);
   game.victoryShown = !!ses.victoryShown || (game.mode === 'custom' && game.level > LEVELS_TO_WIN);
@@ -619,8 +623,8 @@ function levelUp() {
     game.state = 'victory';
     Sound.victory();
     $('victory-text').innerHTML = !isCampaign() ? 'Wszystkie <b>5 plansz</b> ukończone!'
-      : game.startLevel === 1 ? 'Wszystkie <b>20 poziomów</b> kampanii ukończone!'
-      : 'Ukończony ostatni, <b>20. poziom</b> kampanii!';
+      : game.startLevel === 1 ? `Wszystkie <b>${CAMPAIGN_LEVELS_COUNT} poziomów</b> kampanii ukończone!`
+      : `Ukończony ostatni, <b>${CAMPAIGN_LEVELS_COUNT}. poziom</b> kampanii!`;
     $('victory-stats').innerHTML = `Punkty: <b>${game.score}</b> · zestrzelone statki: <b>${game.stats.hits}</b>`;
     showScreen('screen-victory');
     saveBest();
