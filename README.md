@@ -36,11 +36,11 @@ Gdy opublikujemy nową wersję, gra pokaże **„Dostępna nowa wersja”**. **O
 Każde scalenie zmian do gałęzi `main` publikuje grę na GitHub Pages (`.github/workflows/pages.yml`).
 Jednorazowo w ustawieniach repozytorium: **Settings → Pages → Source: GitHub Actions**.
 
-## Kampania – 20 poziomów
+## Kampania – 30 poziomów
 
 Na ekranie ustawień są dwie zakładki: **Kampania** i **Własne ustawienia**.
 W kampanii każdy poziom ma z góry ustalone działania, prędkość statków (V) i częstotliwość (R),
-ułożone według klas szkoły podstawowej. Można zacząć od **klasy (1–8)** albo od **poziomu (1–20)**;
+ułożone według klas szkoły podstawowej. Można zacząć od **klasy (1–8)** albo od **poziomu (1–30)**;
 przycisk **Zobacz tabelę wszystkich poziomów** pokazuje całą listę.
 
 | Poz. | Klasa | Działania | Przykłady | V | R |
@@ -58,15 +58,29 @@ przycisk **Zobacz tabelę wszystkich poziomów** pokazuje całą listę.
 | 11 | 3 | : w zakresie tabliczki | 56 : 7 | 4 | 4 |
 | 12 | 3 | wszystkie 4 działania do 100 | mieszanka | 5 | 5 |
 | 13 | 4 | + − do 1000 pełnymi setkami i dziesiątkami | 450 + 230 | 5 | 5 |
-| 14 | 4 | × : przez 10 i 100, pełnymi dziesiątkami | 30 × 4, 240 : 6 | 5 | 5 |
-| 15 | 4 | dwucyfrowa × jednocyfrowa, dzielna do 100 | 14 × 6, 84 : 4 | 5 | 5 |
-| 16 | 5 | + − do 1000, dowolne liczby | 367 + 248 | 6 | 5 |
-| 17 | 5 | trzycyfrowa : jednocyfrowa | 852 : 6 | 6 | 6 |
-| 18 | 6 | × do 20 × 20 | 15 × 12, 17 × 17 | 6 | 6 |
-| 19 | 7 | wszystkie działania, większe liczby | mieszanka | 7 | 7 |
-| 20 | 8 | „Mistrz”: wszystko, szybko | mieszanka | 8 | 8 |
+| 14 | 4 | × przez 10 i 100, pełnymi dziesiątkami | 30 × 4, 35 × 10 | 4 | 4 |
+| 15 | 4 | : przez 10 i 100, pełnymi dziesiątkami | 240 : 6, 700 : 100 | 4 | 4 |
+| 16 | 4 | × : przez 10 i 100, pełnymi dziesiątkami | 30 × 4, 240 : 6 | 5 | 5 |
+| 17 | 4 | dwucyfrowa × jednocyfrowa | 14 × 6 | 4 | 4 |
+| 18 | 4 | : dzielna do 100, iloraz dwucyfrowy | 84 : 4 | 4 | 4 |
+| 19 | 4 | dwucyfrowa × jednocyfrowa, dzielna do 100 | 14 × 6, 84 : 4 | 5 | 5 |
+| 20 | 5 | + do 1000, dowolne liczby | 367 + 248 | 4 | 4 |
+| 21 | 5 | − do 1000, dowolne liczby | 815 − 469 | 4 | 4 |
+| 22 | 5 | + − do 1000, dowolne liczby | 367 + 248, 815 − 469 | 5 | 5 |
+| 23 | 5 | trzycyfrowa : jednocyfrowa | 852 : 6 | 4 | 4 |
+| 24 | 5 | trzycyfrowa : jednocyfrowa, × do 50 × 9 | 852 : 6, 43 × 7 | 5 | 5 |
+| 25 | 6 | × do 15 × 15 | 13 × 12, 14 × 15 | 4 | 4 |
+| 26 | 6 | × do 20 × 20 | 15 × 12, 17 × 17 | 5 | 5 |
+| 27 | 6 | : przez liczby od 11 do 20, × do 20 × 20 | 144 : 12, 17 × 13 | 5 | 5 |
+| 28 | 7 | wszystkie działania, większe liczby | mieszanka | 6 | 6 |
+| 29 | 7 | wszystkie działania, większe liczby, szybciej | mieszanka | 7 | 7 |
+| 30 | 8 | „Mistrz”: wszystko, szybko | mieszanka | 8 | 8 |
 
-- co **10 punktów** – następny poziom; po **20. poziomie** gra gratuluje – można grać dalej na 20. poziomie,
+Od poziomu 14 każdy nowy temat pojawia się najpierw osobno i wolniej (V 4, R 4),
+a dopiero potem razem z innymi i szybciej – trudność rośnie łagodniej niż wcześniej.
+Zapisany postęp z dawnej kampanii (20 poziomów) jest przeliczany na nowe numery poziomów.
+
+- co **10 punktów** – następny poziom; po **30. poziomie** gra gratuluje – można grać dalej na 30. poziomie,
 - zapisani gracze mają zapamiętany najwyższy osiągnięty poziom; następnym razem gra proponuje start
   od poziomu, na którym skończyli,
 - działania „do powtórki” wracają tylko na tym samym albo kilku kolejnych poziomach kampanii.
@@ -126,7 +140,7 @@ i nie ma dzielenia przez 1), a statki lecą szybciej i pojawiają się częście
 - `index.html`, `css/style.css` – strona i ekrany menu,
 - `js/game.js` – główna logika gry,
 - `js/problems.js` – losowanie działań i utrudnianie na kolejnych planszach (własne ustawienia),
-- `js/campaign.js` – 20 poziomów kampanii i losowanie działań dla nich,
+- `js/campaign.js` – 30 poziomów kampanii i losowanie działań dla nich,
 - `js/graphics.js` – tła plansz, ufoludek, statki, wybuchy i fajerwerki,
 - `js/audio.js` – efekty dźwiękowe (generowane, bez plików),
 - `js/storage.js` – gracze, zapis ustawień i trwającej gry,
